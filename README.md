@@ -575,6 +575,7 @@ Note: check on Hide Equal Values to see only changed values
 This example shows that the execution time is greatly decreased because less data was read.
 
 ## Lab 6 - Table Maintenance
+
 The next part is about Iceberg table maintenance
 
 We will delete rows for three months and change the partition schema before optimize the table.
@@ -627,7 +628,7 @@ Let's organise the data in a new partition by YEAR, MONTH and optimize or compac
 /*
 ** set the partition to YEAR/MONTH, no old data is moved or re-organised.
 */
-alter table flights_ice SET PARTITION SPEC (year ,month);
+ALTER TABLE flights_ice SET PARTITION SPEC (year ,month);
 ```
 
 Now let's do the real hard work, create a new snapshot and rewrite the data files.
@@ -906,7 +907,7 @@ Output:
 This lab you saw how Iceberg branching feature helping data quality pipelines in a data engineering workflow.
 
 -----
-## Lab 7 - Slowly Changing Dimensions (SCD) - TYPE 2
+## Lab 8 - Slowly Changing Dimensions (SCD) - TYPE 2
 
 *Do all these steps in the* **“db\_user001”..”db\_user020”** *unless otherwise noted.*
 
@@ -1035,74 +1036,6 @@ Results
 |04Q	|Tradewind Aviation	|2021-01-01 00:00:00	|2024-04-11 12:06:15.649675|
 |FFF	|New Airline	|2024-04-11 12:06:15.649675	|9999-01-01 00:00:00|
 |-----
-## Lab 7 - Data Security & Governance
-
-The combination of the Data Warehouse with SDX offers a list of powerful features like rule-based masking columns based on a user’s role and/or group association or rule-based row filters.
-
-For this workshop we are going to explore Attribute-Based Access Control a.k.a. Tage-based security policies.
-
-First we are going to create a series of tables in your work database.
-
-In the SQL editor, select your database and run this script:
-
-```sql
-CREATE TABLE emp_fname (id int, fname string);
-insert into emp_fname(id, fname) values (1, 'Carl'),(2, 'Clarence');
-
-CREATE TABLE emp_lname (id int, lname string);
-insert into emp_lname(id, lname) values (1, 'Rickenbacker'), (2, 'Fender');
-
-CREATE TABLE emp_age (id int, age smallint);
-insert into emp_age(id, age) values (1, 35),(2, 55);
-
-CREATE TABLE emp_denom (id int, denom char(2), email string);
-insert into emp_denom(id, denom, email) values (1, 'rk','cr@yahoo.com'),(2, 'na','cfender@gmail.com');
-
-CREATE TABLE emp_id (id int, empid integer);
-insert into emp_id(id, empid) values (1, 1146651),(2, 239125);
-
-CREATE TABLE emp_all as
-  (select a.id, a.fname, b.lname, c.age, d.denom,d.email,e.empid from emp_fname a
-	inner join emp_lname b on b.id = a.id
-	inner join emp_age c on c.id = b.id
-	inner join emp_denom d on d.id = c.id
-	inner join emp_id e on e.id = d.id);
-
-create table emp_younger as (select * from emp_all where emp_all.age <= 45);
-
-create table emp_older as (select * from emp_all where emp_all.age > 45);
-```
-
-After this script executes, a simple
-
-```sql
-select * from emp_all;
-```
-
-… should give the contents of the emp\_all table, which only has a couple of lines of data.
-
-For the next step we will switch to the UI of Atlas, the CDP component responsible for metadata management and governance: in the Cloudera Data Warehouse *Overview* UI, select Database Catalog. Click on the three-dot menu of this DB catalog and select “Open Atlas” in the associated pop-up menu:
-
-![](images/RangerUIOpen.png)
-
-This should open the Atlas UI. CDP comes with a newer, improved user interface which can be enabled through the __“Switch to Beta”__ item in the user menu on the upper right corner of the screen. Do this now.
-
-The Atlas UI has a left column which lists the Entities, Classifications, Business Metadata and Glossaries that belong to your CDP Environment.
-
-![](images/Aspose.Words.10bb90cf-0d99-47f3-a995-23ef2b90be86.007.png)
-
-We just created a couple of tables in the Data Warehouse, let’s look at the associated metadata. Under “Entities”, click on “hive\_db”. This should produce a list of databases.
-Select you workshop database, this will result in the database’s metadata being displayed.
-
-Select the “Tables” tab (the rightmost)
-![](images/Aspose.Words.10bb90cf-0d99-47f3-a995-23ef2b90be86.008.png)
-
-Select the “emp\_all” table from the list, this will result in Atlas displaying the metadata for this table; select the “lineage” tab:
-   ![](images/Aspose.Words.10bb90cf-0d99-47f3-a995-23ef2b90be86.009.png)
-This lineage graph shows the inputs, outputs as well as the processing steps resulting from the execution of our SQL code in the Data Warehouse.
-
-The red circle marks the currently selected entity. Atlas will always display the current entity's type in braces next to the entity name (middle, top of the page, e.g. "hive_table"). Clicking on one of the nodes will display a popup menu, which allows us to navigate through the lineage graph.
-
 
 -----
 ## Lab 8 - Data Visualization
