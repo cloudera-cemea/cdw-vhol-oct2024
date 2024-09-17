@@ -606,6 +606,8 @@ FROM ${your_dbname}.flights_ice.all_files
 Group by content;
 ```
 
+Result: showing the physical files
+
 | :- | :- | :- | :- |
 |content_type	|count_files	|sum_records	|total_file_size_mb	|avg_file_size_mb|
 | :- | :- | :- | :- |
