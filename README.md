@@ -588,7 +588,7 @@ delete from flights_ice where dayofmonth = 4;
 delete from flights_ice where dayofmonth = 6;
 ```
 
-The deleted rows are marked in didicated delete files, the rows are not removed from the original data file.
+The deleted rows are marked into files and let's the rows in the original data file or in other words the delete rows are not removed from the data files. Let's see how many physical files we have:
 
 ```sql
 /*
@@ -606,34 +606,49 @@ FROM ${your_dbname}.flights_ice.all_files
 Group by content;
 ```
 
-Result: showing the physical files
+Result: showing the physical files with three newly delete files.
 
 
-|content_type	|count_files	|sum_records	|total_file_size_mb	|avg_file_size_mb|
+| content_type	| count_files	| sum_records	| total_file_size_mb	| avg_file_size_mb |
 | :- | :- | :- | :- |
-|delete file	|3	|524189	|2.084	|0.702|
-|data file	|5	|10669045	|127.447	|25.741|
+| delete file	| 3	| 524189	| 2.084	| 0.702 |
+| data file	| 5	| 10669045	| 127.447	| 25.741 |
+
+Note: The delete files are very small because they only holding the position of the delete rows.
 
 
---
--- set the partition to YEAR/MONTH
---
+The data files having two different partition schemes
+   - by YEAR
+   - by YEAR, MONTH, DAYOFMONTH
+
+Let's organise the data in a new partition by YEAR, MONTH and optimize or compact the table.
+
+```sql
+/*
+** set the partition to YEAR/MONTH, no old data is moved or re-organised.
+*/
 alter table flights_ice SET PARTITION SPEC (year ,month);
+```
 
+Now let's do the real hard work, create a new snapshot and rewrite the data files.
+
+```sql
 -- create a new data file (without the deleted rows)
 OPTIMIZE TABLE flights_ice REWRITE DATA;
+```
 
--- SHOW COMPACTIONS;
+Because we have meanwhile many snapshots and the all data is still available.
 
--- show the new created snapshot by
-select * from ${your_dbname}.flights_ice.history;
+To remove the unused data we now expire the snapshots and remove the data pyhsically.
 
---
--- expire all snapshots that will remove all unused the data and delete files
---
+```sql
+/*
+** expire all snapshots that will remove all unused the data and delete files
+*/
 ALTER TABLE flights_ice EXECUTE EXPIRE_SNAPSHOTS('2024-12-31 24:00:00');  
+```
 
-
+```sql
 SELECT CASE content
      WHEN 0 THEN 'data file'
      WHEN 1 THEN 'delete file'
@@ -644,6 +659,9 @@ SELECT CASE content
      avg(trunc(file_size_in_bytes/1024/1024)) avg_file_size_MB     
 FROM ${your_dbname}.flights_ice.all_files
 Group by content;
+```
+
+This shows only data files and all not more needed data in old snapshots are purged.
 
 
 ## Lab 6 - Data Quality with Branching
