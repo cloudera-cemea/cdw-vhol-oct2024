@@ -450,20 +450,10 @@ Lets create a new table with Iceberg format and insert rows in batches:
 
 ```sql
 drop table if exists flights_ice;
-create table flights_ice(
- year int, month int, dayofmonth int,  
- dayofweek int, deptime int, crsdeptime int, arrtime int,  
- crsarrtime int, uniquecarrier string, flightnum int, tailnum string,  
- actualelapsedtime int, crselapsedtime int, airtime int, arrdelay int,  
- depdelay int, origin string, dest string, distance int, taxiin int,  
- taxiout int, cancelled int, cancellationcode string, diverted string,  
- carrierdelay int, weatherdelay int, nasdelay int, securitydelay int,  
- lateaircraftdelay int )
- stored by ICEBERG;
-
-insert into flights_ice (year, month, dayofmonth, dayofweek, deptime, crsdeptime, arrtime, crsarrtime,uniquecarrier, flightnum, tailnum, actualelapsedtime, crselapsedtime, airtime, arrdelay, depdelay,origin, dest, distance, taxiin, taxiout, cancelled, cancellationcode, diverted, carrierdelay, weatherdelay,nasdelay, securitydelay, lateaircraftdelay )
+create table flights_ice  partitioned by (year) stored by iceberg as
 select year, month, dayofmonth, dayofweek, deptime, crsdeptime, arrtime, crsarrtime, uniquecarrier, flightnum, tailnum, actualelapsedtime, crselapsedtime, airtime, arrdelay, depdelay, origin, dest, distance, taxiin, taxiout, cancelled, cancellationcode, diverted, carrierdelay, weatherdelay, nasdelay, securitydelay, lateaircraftdelay
-from flights_orc where year = 1995 and month <= 6;
+from flights_orc
+where year = 1995 and month <= 6;
 
 insert into flights_ice (year, month, dayofmonth, dayofweek, deptime, crsdeptime, arrtime, crsarrtime,uniquecarrier, flightnum, tailnum, actualelapsedtime, crselapsedtime, airtime, arrdelay, depdelay,origin, dest, distance, taxiin, taxiout, cancelled, cancellationcode, diverted, carrierdelay, weatherdelay,nasdelay, securitydelay, lateaircraftdelay )
 select year,month, dayofmonth, dayofweek, deptime, crsdeptime, arrtime, crsarrtime, uniquecarrier, flightnum, tailnum, actualelapsedtime, crselapsedtime, airtime, arrdelay, depdelay, origin, dest, distance, taxiin, taxiout, cancelled, cancellationcode, diverted, carrierdelay, weatherdelay, nasdelay, securitydelay, lateaircraftdelay
@@ -503,8 +493,8 @@ Result: two snapshots of the table in the output, one for each insert command.
 
 |FLIGHTS.MADE_CURRENT_AT |	FLIGHTS_ICE.SNAPSHOT_ID	|FLIGHTS.PARENT_ID	|FLIGHTS.IS_CURRENT_ANCESTOR|
 | :- | :- | :- | :- |
-2022-05-01 09:29:12.509 Z|	7097750832501567062 | null | true |
-2022-05-01 09:56:21.464 Z|	5696129515471947086 | 7097750832501567062 | true |
+2024-05-01 09:29:12.509 Z|	7097750832501567062 | null | true |
+2024-05-01 09:56:21.464 Z|	5696129515471947086 | 7097750832501567062 | true |
 
 
 Let's make a quick time travel to one of the versions using SYSTEM_VERSION or SYSTEM_TIME.
@@ -528,7 +518,7 @@ Result: Only data from the first insert.
 
 |  row_count |
 | :- |
-| 2783584 |
+| 2783586 |
 
 
 Partition Evolution is a feature when table layout can be updated as data or queries change and  users are not required to maintain partition columns.
@@ -546,7 +536,7 @@ alter table flights_ice SET PARTITION SPEC (year ,month, dayofmonth);
 Now let's insert one day of data into the partitioned table:
 ```sql
 insert into flights_ice (year, month, dayofmonth, dayofweek, deptime, crsdeptime, arrtime, crsarrtime,uniquecarrier, flightnum, tailnum, actualelapsedtime, crselapsedtime, airtime, arrdelay, depdelay,origin, dest, distance, taxiin, taxiout, cancelled, cancellationcode, diverted, carrierdelay, weatherdelay,nasdelay, securitydelay, lateaircraftdelay )
-select 2023, 1, 1 , dayofweek, deptime, crsdeptime, arrtime, crsarrtime, uniquecarrier, flightnum, tailnum, actualelapsedtime, crselapsedtime, airtime, arrdelay, depdelay, origin, dest, distance, taxiin, taxiout, cancelled, cancellationcode, diverted, carrierdelay, weatherdelay, nasdelay, securitydelay, lateaircraftdelay
+select 2024, 1, 1 , dayofweek, deptime, crsdeptime, arrtime, crsarrtime, uniquecarrier, flightnum, tailnum, actualelapsedtime, crselapsedtime, airtime, arrdelay, depdelay, origin, dest, distance, taxiin, taxiout, cancelled, cancellationcode, diverted, carrierdelay, weatherdelay, nasdelay, securitydelay, lateaircraftdelay
 from flights_orc where year = 1995 and month = 1 and dayofmonth = 1;
 ```
 Now lets see the impact what the difference is, lets run two queries and note the complete time:
@@ -570,7 +560,7 @@ sum(depdelay)
 from
   flights_ice
 where  
-  year = 2023 and month = 1 and dayofmonth = 1;
+  year = 2024 and month = 1 and dayofmonth = 1;
  ```
 
 You can compare the two queries in the HUE Query Processor tool. The second query has reads only the small partitioned file and you notice the difference in the DAG Swimlane tab:
@@ -583,6 +573,75 @@ More details on the DAG Counter tab:
 Note: check on Hide Equal Values to see only changed values
 
 This example shows that the execution time is greatly decreased because less data was read.
+
+The next part is about Iceberg table maintenance
+
+We will delete rows for three months and change the partition schema before optimize the table.
+
+
+```sql
+/*
+** delete few months of data
+*/
+delete from flights_ice where dayofmonth = 2;
+delete from flights_ice where dayofmonth = 4;
+delete from flights_ice where dayofmonth = 6;
+```
+
+The deleted rows are marked in didicated delete files, the rows are not removed from the original data file.
+
+```sql
+/*
+** show delete files and data files
+*/
+SELECT CASE content
+     WHEN 0 THEN 'data file'
+     WHEN 1 THEN 'delete file'
+     ELSE 'n/a' END AS content_type,
+     count(1) count_files,
+     sum(record_count) sum_records,
+     sum(trunc(file_size_in_bytes/1024/1024)) total_file_size_MB,
+     avg(trunc(file_size_in_bytes/1024/1024)) avg_file_size_MB     
+FROM ${your_dbname}.flights_ice.all_files
+Group by content;
+```
+
+|content_type	|count_files	|sum_records	|total_file_size_mb	|avg_file_size_mb|
+| :- | :- | :- | :- |
+|delete file	|3	|524189	|2.084	|0.702|
+|data file	|5	|10669045	|127.447	|25.741|
+
+
+--
+-- set the partition to YEAR/MONTH
+--
+alter table flights_ice SET PARTITION SPEC (year ,month);
+
+-- create a new data file (without the deleted rows)
+OPTIMIZE TABLE flights_ice REWRITE DATA;
+
+-- SHOW COMPACTIONS;
+
+-- show the new created snapshot by
+select * from ${your_dbname}.flights_ice.history;
+
+--
+-- expire all snapshots that will remove all unused the data and delete files
+--
+ALTER TABLE flights_ice EXECUTE EXPIRE_SNAPSHOTS('2024-12-31 24:00:00');  
+
+
+SELECT CASE content
+     WHEN 0 THEN 'data file'
+     WHEN 1 THEN 'delete file'
+     ELSE 'n/a' END AS content_type,
+     count(1) count_files,
+     sum(record_count) sum_records,
+     sum(trunc(file_size_in_bytes/1024/1024)) total_file_size_MB,
+     avg(trunc(file_size_in_bytes/1024/1024)) avg_file_size_MB     
+FROM ${your_dbname}.flights_ice.all_files
+Group by content;
+
 
 ## Lab 6 - Data Quality with Branching
 *Enter the your_dbname as **“db\_user001”..”db\_user020”** in this HUE parameter field
