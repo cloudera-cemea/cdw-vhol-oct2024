@@ -681,83 +681,18 @@ The QA pipeline looks like the following:
 
 The QA steps are test, cleanse, validate and propergate to production.
 
-In this lab we go through these steps for the AIRPORTS table.
-
-
-1) uniqueness of the IATA codes
-
-2) length of field IATA should be always 3
-
-3) no quotation marks in the field AIRPORT
-
-
-
-*Enter the your_dbname as **“db\_user001”..”db\_user020”** in this HUE parameter field
 
 ![](images/cdw-lab6-qa002.png)
 
-Begin with the creation of ICEBERG V2 table with the raw data and run the first test checking uniqueness of the IATA code:
+Begin with the creation of ICEBERG V2 table with the raw data.
 
 ```sql
 drop table if exists ${your_dbname}.airports_ice;
-create table ${your_dbname}.airports_ice stored by iceberg TBLPROPERTIES('format-version'='2')
+create table ${your_dbname}.airports_ice stored by iceberg
 as select * from ${your_dbname}.airports_csv;
-
-/*
-** QA test:  iata unique values   
-*/
-select
-      count(*) as failures,
-      count(*) != 0 as should_warn,
-      count(*) != 0 as should_error
-    from (
-select
-    iata as unique_field,
-    count(*) as n_records
-from airports_ice
-where iata is not null
-group by iata
-having count(*) > 1
-) iata_unique_test;
 ```
 
-The output should like this not reporting any duplicate IATA codes.
-
-| failures | should_warn | should_error |
-| :- | :- |  :- |
-|0 | false |	false |
-
-Now running the 2nd test of the field length for the IATA code that must be 3:
-```sql
-/*
-** test iata len = 3
-*/
-select
-      count(*) as failures,
-      count(*) != 0 as should_warn,
-      count(*) != 0 as should_error
-from (
-      with validation as (
-	                         select iata as field
-	                          from airports_ice
-                         ),
-                         validation_errors as (
-	   select field from validation
-	    where LENGTH(field) != 3
-                        )
-select *
-from validation_errors
-) iata_length_test;
-```
-
-The test shows that 42 rows are not having the correct length.
-
-|failures |	should_warn	| should_error |
-| :- | :- |  :- |
-| 42 |	true |	true |
-
-
-Running the 3rd test and find quotation marks in the field AIRPORT
+Running the a test and find quotation marks in the field AIRPORT
 
 ```sql
 /*
@@ -816,9 +751,6 @@ Now do the cleaning job and delete rows where the IATA code is != 3 and remove t
 /*
 ** Data Cleansing: data transformations
 */
-delete from ${your_dbname}.airports_ice.branch_qa
-where LENGTH(iata) != 3;
-
 update ${your_dbname}.airports_ice.branch_qa
 set airport = regexp_replace( airport ,'"','')
 where airport rlike('"');
@@ -830,35 +762,7 @@ Output should like this:
 
 Next is to validate the data we have cleansed to be on the save side.
 
-```SQL
- /*
- ** Validate: not iata len <> 3
- */
- select
-       count(*) as failures,
-       count(*) != 0 as should_warn,
-       count(*) > 100 as should_error
- from (
-       with validation as (
- 	                         select iata as field
- 	                          from ${your_dbname}.airports_ice.branch_qa
-                          ),
- validation_errors as (
- 	select field from validation
- 	where LENGTH(field) != 3
- )
- select *
- from validation_errors
- ) iata_length_test;
-```
-
-Output looks good:
-
- |failures |	should_warn	| should_error |
- | :- | :- |  :- |
- | 0 |	false |	false |
-
-Run the 2nd validation
+Run the validation (note the query from using the branch_qa):
 
  ```SQL
  /*
