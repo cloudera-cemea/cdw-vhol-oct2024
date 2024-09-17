@@ -608,10 +608,8 @@ Group by content;
 
 Result: showing the physical files with three newly delete files.
 
-|FLIGHTS.MADE_CURRENT_AT |	FLIGHTS_ICE.SNAPSHOT_ID	|FLIGHTS.PARENT_ID	|FLIGHTS.IS_CURRENT_ANCESTOR|
-| :- | :- | :- | :- |
-| content_type	| count_files	| sum_records	| total_file_size_mb	| avg_file_size_mb |
-| :- | :- | :- | :- |
+|content_type |	count_files	|sum_records	|total_file_size_mb|avg_file_size_mb|
+| :- | :- | :- | :- | :- |
 | delete file	| 3	| 524189	| 2.084	| 0.702 |
 | data file	| 5	| 10669045	| 127.447	| 25.741 |
 
