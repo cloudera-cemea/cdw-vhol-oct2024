@@ -574,6 +574,7 @@ Note: check on Hide Equal Values to see only changed values
 
 This example shows that the execution time is greatly decreased because less data was read.
 
+## Lab 6 - Table Maintenance
 The next part is about Iceberg table maintenance
 
 We will delete rows for three months and change the partition schema before optimize the table.
@@ -600,8 +601,8 @@ SELECT CASE content
      ELSE 'n/a' END AS content_type,
      count(1) count_files,
      sum(record_count) sum_records,
-     sum(trunc(file_size_in_bytes/1024/1024)) total_file_size_MB,
-     avg(trunc(file_size_in_bytes/1024/1024)) avg_file_size_MB     
+     round(sum((file_size_in_bytes/1024/1024)),3) total_file_size_MB,
+     round(avg((file_size_in_bytes/1024/1014)),3) avg_file_size_MB     
 FROM ${your_dbname}.flights_ice.all_files
 Group by content;
 ```
@@ -656,19 +657,20 @@ SELECT CASE content
      ELSE 'n/a' END AS content_type,
      count(1) count_files,
      sum(record_count) sum_records,
-     sum(trunc(file_size_in_bytes/1024/1024)) total_file_size_MB,
-     avg(trunc(file_size_in_bytes/1024/1024)) avg_file_size_MB     
+     round(sum((file_size_in_bytes/1024/1024)),3) total_file_size_MB,
+     round(avg((file_size_in_bytes/1024/1014)),3) avg_file_size_MB     
 FROM ${your_dbname}.flights_ice.all_files
 Group by content;
 ```
 
-|FLIGHTS.MADE_CURRENT_AT |	FLIGHTS_ICE.SNAPSHOT_ID	|FLIGHTS.PARENT_ID	|FLIGHTS.IS_CURRENT_ANCESTOR|
-| :- | :- | :- | :- |
+|content_type |	count_files	|sum_records	|total_file_size_mb|avg_file_size_mb|
+| :- | :- | :- | :- | :- |
+| data file	| 13	| 4817421	| 61.285	| 4.761 |
 
 This shows only data files and all not more needed data in old snapshots are purged.
 
 
-## Lab 6 - Data Quality with Branching
+## Lab 7 - Data Quality with Branching
 *Enter the your_dbname as **“db\_user001”..”db\_user020”** in this HUE parameter field
 
 The quality of data holds immense importance within any data engineering process, directly influencing subsequent analytical tasks like business intelligence and machine learning. It is imperative to conduct thorough testing, cleansing and validation of data at every stage of the data pipeline before deployment into the production.
