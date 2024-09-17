@@ -608,7 +608,8 @@ Group by content;
 
 Result: showing the physical files with three newly delete files.
 
-
+|FLIGHTS.MADE_CURRENT_AT |	FLIGHTS_ICE.SNAPSHOT_ID	|FLIGHTS.PARENT_ID	|FLIGHTS.IS_CURRENT_ANCESTOR|
+| :- | :- | :- | :- |
 | content_type	| count_files	| sum_records	| total_file_size_mb	| avg_file_size_mb |
 | :- | :- | :- | :- |
 | delete file	| 3	| 524189	| 2.084	| 0.702 |
@@ -633,7 +634,9 @@ alter table flights_ice SET PARTITION SPEC (year ,month);
 Now let's do the real hard work, create a new snapshot and rewrite the data files.
 
 ```sql
--- create a new data file (without the deleted rows)
+/*
+** create a new data file (without the deleted rows)
+*/
 OPTIMIZE TABLE flights_ice REWRITE DATA;
 ```
 
@@ -660,6 +663,9 @@ SELECT CASE content
 FROM ${your_dbname}.flights_ice.all_files
 Group by content;
 ```
+
+|FLIGHTS.MADE_CURRENT_AT |	FLIGHTS_ICE.SNAPSHOT_ID	|FLIGHTS.PARENT_ID	|FLIGHTS.IS_CURRENT_ANCESTOR|
+| :- | :- | :- | :- |
 
 This shows only data files and all not more needed data in old snapshots are purged.
 
