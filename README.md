@@ -606,11 +606,12 @@ FROM ${your_dbname}.flights_ice.all_files
 Group by content;
 ```
 
+| :- | :- | :- | :- |
 |content_type	|count_files	|sum_records	|total_file_size_mb	|avg_file_size_mb|
 | :- | :- | :- | :- |
 |delete file	|3	|524189	|2.084	|0.702|
 |data file	|5	|10669045	|127.447	|25.741|
-
+| :- | :- | :- | :- |
 
 --
 -- set the partition to YEAR/MONTH
