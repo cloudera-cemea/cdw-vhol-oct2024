@@ -663,7 +663,7 @@ Group by content;
 ```
 
 | content_type |	count_files	| total_file_size_mb | avg_file_size_mb |
-| :- | :- | :- | :- | :- |
+| :- | :- | :- | :- |
 | data file	| 13	| 61.285	| 4.761 |
 
 This shows only data files and all not more needed data in old snapshots are purged.
