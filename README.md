@@ -590,7 +590,7 @@ delete from flights_ice where dayofmonth = 4;
 delete from flights_ice where dayofmonth = 6;
 ```
 
-The deleted rows are marked into files and let's the rows in the original data file or in other words the delete rows are not removed from the data files. Let's see how many physical files we have:
+The deleted rows are marked into files and keeps the rows in the original data file or in other words the delete rows are not removed from the data files. Let's see how many physical files we have:
 
 ```sql
 /*
@@ -601,19 +601,18 @@ SELECT CASE content
      WHEN 1 THEN 'delete file'
      ELSE 'n/a' END AS content_type,
      count(1) count_files,
-     sum(record_count) sum_records,
      round(sum((file_size_in_bytes/1024/1024)),3) total_file_size_MB,
      round(avg((file_size_in_bytes/1024/1014)),3) avg_file_size_MB     
 FROM ${your_dbname}.flights_ice.all_files
 Group by content;
 ```
 
-Result: showing the physical files with three newly delete files.
+Result: showing three newly delete files, one for every delete command.
 
-|content_type |	count_files	|sum_records	|total_file_size_mb|avg_file_size_mb|
+|content_type |	count_files	|total_file_size_mb|avg_file_size_mb|
 | :- | :- | :- | :- | :- |
-| delete file	| 3	| 524189	| 2.084	| 0.702 |
-| data file	| 5	| 10669045	| 127.447	| 25.741 |
+| delete file	| 3	|  2.084	| 0.702 |
+| data file	| 5	|  127.447	| 25.741 |
 
 Note: The delete files are very small because they only holding the position of the delete rows.
 
@@ -657,16 +656,15 @@ SELECT CASE content
      WHEN 1 THEN 'delete file'
      ELSE 'n/a' END AS content_type,
      count(1) count_files,
-     sum(record_count) sum_records,
      round(sum((file_size_in_bytes/1024/1024)),3) total_file_size_MB,
      round(avg((file_size_in_bytes/1024/1014)),3) avg_file_size_MB     
 FROM ${your_dbname}.flights_ice.all_files
 Group by content;
 ```
 
-|content_type |	count_files	|sum_records	|total_file_size_mb|avg_file_size_mb|
+|content_type |	count_files	|total_file_size_mb|avg_file_size_mb|
 | :- | :- | :- | :- | :- |
-| data file	| 13	| 4817421	| 61.285	| 4.761 |
+| data file	| 13	| 61.285	| 4.761 |
 
 This shows only data files and all not more needed data in old snapshots are purged.
 
