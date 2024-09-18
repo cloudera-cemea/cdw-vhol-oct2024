@@ -609,8 +609,8 @@ Group by content;
 
 Result: showing three newly delete files, one for every delete command.
 
-| content_type |	count_files	|total_file_size_mb|avg_file_size_mb|
-| :- | :- | :- | :- | :- |
+| content_type |	count_files	| total_file_size_mb | avg_file_size_mb |
+| :- | :- | :- | :- |
 | delete file	| 3	|  2.084	| 0.702 |
 | data file	| 5	|  127.447	| 25.741 |
 
