@@ -354,7 +354,6 @@ Result:
 |2 |04Q |Tradewind Aviation |
 |3 |05Q |"Comlux Aviation |
 
-
 ### SQL AI Assistant - makes SQL development faster, easier, and less error-prone
 
 The SQL AI Assistant is an AI-powered tool designed to enhance SQL development, making it faster, more intuitive, and less prone to errors. By leveraging advanced contextual understanding of your data, it provides accurate and relevant SQL code suggestions that improve productivity. Integrated into Hue within Cloudera, this assistant harnesses the capabilities of Large Language Models (LLMs) for a range of SQL tasks, including query creation, editing, optimization, debugging, and summarization.
@@ -373,7 +372,7 @@ type in or copy the following test into the blue background
 what are the top 10 flights orc destinations from LAX
 ```
 
-Press enter or Click on the Sign to execute
+Press enter to execute
 
 ![](images/cdw-lab3-ai004.png)
 
@@ -381,6 +380,7 @@ This SQL code can be inserted and executed.
 
 ![](images/cdw-lab3-ai005.png)
 
+You can experiment with this feature in the workshop further.
 
 -----
 ## Lab 4 - Materialized View
@@ -482,7 +482,7 @@ Result:
 
 | row_count |
 | :- |
-| 5437433|
+| 5327435 |
 
 
 
@@ -525,7 +525,7 @@ Result: Only data from the first insert.
 
 |  row_count |
 | :- |
-| 2783586 |
+| 2673586 |
 
 
 Partition Evolution is a feature when table layout can be updated as data or queries change and  users are not required to maintain partition columns.
@@ -645,6 +645,7 @@ Now let's do the real hard work, create a new snapshot and rewrite the data file
 */
 OPTIMIZE TABLE flights_ice REWRITE DATA;
 ```
+Note: this may need some time to finish ( 2 minutes or more depending on the workload)
 
 Because we have meanwhile many snapshots and the all data is still available.
 
@@ -685,9 +686,6 @@ The QA pipeline looks like the following:
 ![](images/cdw-lab6-qa001C.png)
 
 The QA steps are test, cleanse, validate and propergate to production.
-
-
-![](images/cdw-lab6-qa002.png)
 
 Begin with the creation of ICEBERG V2 table with the raw data.
 
