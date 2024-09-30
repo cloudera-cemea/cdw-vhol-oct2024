@@ -136,27 +136,6 @@ Results
 |N366UA	| 24808 |331318	| 12113	|
 |N377UA	| 25105 |328546	| 12163	|
 
-### SQL AI Assistant - makes SQL development faster, easier, and less error-prone
-
-The SQL AI Assistant is an AI-powered tool designed to enhance SQL development, making it faster, more intuitive, and less prone to errors. By leveraging advanced contextual understanding of your data, it provides accurate and relevant SQL code suggestions that improve productivity. Integrated into Hue within Cloudera, this assistant harnesses the capabilities of Large Language Models (LLMs) for a range of SQL tasks, including query creation, editing, optimization, debugging, and summarization.
-
-Click on the blue dot to launch the SQL AI Assistant
-
-![](images/cdw-lab1-ai001.png)
-
-this unfolds this bar
-
-![](images/cdw-lab1-ai002.png)
-
-Click on EXPLAIN to understand SQL query command
-
-![](images/cdw-lab1-ai003.png)
-
-it will take a few secondes to generate this outcome.
-
-![](images/cdw-lab1-ai004.png)
-
-This can be inserted for documentation purposes.
 
 -----
 ## Lab 3 - Managed Tables
@@ -374,6 +353,34 @@ Result:
 |1 |02Q |Titan Airways |
 |2 |04Q |Tradewind Aviation |
 |3 |05Q |"Comlux Aviation |
+
+
+### SQL AI Assistant - makes SQL development faster, easier, and less error-prone
+
+The SQL AI Assistant is an AI-powered tool designed to enhance SQL development, making it faster, more intuitive, and less prone to errors. By leveraging advanced contextual understanding of your data, it provides accurate and relevant SQL code suggestions that improve productivity. Integrated into Hue within Cloudera, this assistant harnesses the capabilities of Large Language Models (LLMs) for a range of SQL tasks, including query creation, editing, optimization, debugging, and summarization.
+
+Click on GENERATE to launch the SQL AI Assistant and unfold the bar
+
+![](images/cdw-lab3-ai001.png)
+
+this unfolds this bar
+
+![](images/cdw-lab3-ai002.png)
+
+type in or copy the following test into the blue background
+
+```
+what are the top 10 flights orc destinations from LAX
+```
+
+Press enter or Click on the Sign to execute
+
+![](images/cdw-lab3-ai004.png)
+
+This SQL code can be inserted and executed.
+
+![](images/cdw-lab3-ai005.png)
+
 
 -----
 ## Lab 4 - Materialized View
