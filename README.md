@@ -945,7 +945,38 @@ Results
 |-----
 
 -----
-## Lab 8 - Data Visualization
+
+
+## Lab 9 - Observability
+
+Observability is important because it continuously gathers and monitors performance data from applications and infrastructure components.
+
+This helps create a detailed, centralized source of truth for tracking metrics, logs, dependencies, and traces.
+With Cloudera Observability, real-time correlations are made to identify both current and potential issues, providing actionable insights and recommendations to resolve them proactively.
+
+
+Navigate to Cloudera Observability
+
+![](images/cdw-lab9-ob001.png)
+
+Click on Hive to get a overview of the Hive service, you can hoover over the query and click to get details.
+
+![](images/cdw-lab9-ob002.png)
+
+Clicking on the first row usually is the SQL command for our lab 3 "create table flights_orc "
+
+![](images/cdw-lab9-ob003.png)
+
+The overiew here shows: (!) Job performance can be improved.
+
+Click now on Health checks and you find the right a recommendation to improve the query performance
+
+![](images/cdw-lab9-ob004.png)
+
+There are many other features to explore that helps you run and continuously improve the efficiency and performance.
+
+
+## Lab 10 - Data Visualization
 
 
 1. Use Data Visualization to further explore the data set.
@@ -978,9 +1009,14 @@ Results
 
 ||
 | :- |
+
+
+
+
+
 # Bonus Material (optional)
 
-## 9 - Continues Data Pipeline
+##  - Continues Data Pipeline
 
 During the workshop every minute new streaming flight events are
  - created
